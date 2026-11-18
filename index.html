@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>系學會活動申請小幫手</title>
+<style>
+:root{
+  --bg:#f6f4ee; --card:#ffffff; --text:#2c2c2a; --sub:#5f5e5a; --muted:#888780;
+  --border:#e3e0d6; --accent:#185fa5; --accent-bg:#e6f1fb; --danger:#a32d2d; --danger-bg:#fcebeb;
+  --warn-bg:#faeeda; --warn-text:#854f0b; --radius:10px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#211f1a; --card:#2c2b26; --text:#eceae2; --sub:#b4b2a9; --muted:#888780;
+    --border:#44433e; --accent:#85b7eb; --accent-bg:#0c447c; --danger:#f09595; --danger-bg:#501313;
+    --warn-bg:#412402; --warn-text:#fac775;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#211f1a; --card:#2c2b26; --text:#eceae2; --sub:#b4b2a9; --muted:#888780;
+  --border:#44433e; --accent:#85b7eb; --accent-bg:#0c447c; --danger:#f09595; --danger-bg:#501313;
+  --warn-bg:#412402; --warn-text:#fac775;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+*{box-sizing:border-box;}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 40px;}
+h1{font-size:18px;font-weight:600;margin:0 0 4px;}
+.dots{display:flex;gap:6px;margin:12px 0 20px;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
+.dot.on{background:var(--accent);}
+.q{font-size:16px;font-weight:600;margin:0 0 14px;}
+.opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--text);font-size:15px;cursor:pointer;}
+.opt.sel{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;}
+input.numinput{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--text);font-size:16px;margin-bottom:10px;}
+.nav{display:flex;gap:10px;margin-top:20px;}
+button.btn{flex:1;padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px;cursor:pointer;}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+button.btn:disabled{opacity:0.4;cursor:default;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;}
+.label{font-size:13px;font-weight:600;color:var(--sub);margin:0 0 10px;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.row:last-child{border-bottom:none;}
+.rowtitle{font-size:14px;}
+.tag{font-size:12px;padding:2px 8px;border-radius:6px;background:var(--danger-bg);color:var(--danger);}
+.tagmuted{font-size:12px;color:var(--muted);}
+.alert{display:flex;gap:8px;align-items:center;background:var(--danger-bg);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:13px;margin-bottom:14px;}
+.warnbox{background:var(--warn-bg);color:var(--warn-text);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;line-height:1.7;}
+.warnbox b{display:block;margin-bottom:6px;}
+.warnbox ol{margin:0;padding-left:18px;}
+.warnbox li{margin-bottom:4px;}
+.chain{display:flex;flex-direction:column;}
+.chainstep{font-size:13px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;}
+.chainarrow{text-align:center;font-size:14px;color:var(--accent);padding:2px 0;}
+.restart{margin-top:18px;width:100%;padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>系學會活動申請小幫手</h1>
+  <p style="font-size:13px;color:var(--sub);margin:0;">回答問題,取得文件清單與會議提醒</p>
+  <div class="dots" id="dots"></div>
+  <div id="app"></div>
+</div>
+<script>
+const Q = [
+  {key:'campus', type:'select', text:'Q1 這場活動是校內還是校外?', opts:[
+    {v:'in', l:'校內(全程在師大校園內)'},
+    {v:'out', l:'校外(含校外場地,或校內校外混合)'}
+  ]},
+  {key:'multiday', type:'select', text:'Q2 是否為多天各自舉辦的同一活動?(例如啦啦練習)', opts:[
+    {v:'yes', l:'是'},
+    {v:'no', l:'否(含一次性活動、宿營等跨夜活動)'}
+  ]},
+  {key:'officer', type:'select', text:'Q3 總籌是否為系學會幹部?', opts:[
+    {v:'yes', l:'是,總籌本人是幹部'},
+    {v:'no', l:'否,總籌不是幹部'}
+  ]},
+  {key:'joint', type:'select', text:'Q4 是否跨系合辦?', opts:[
+    {v:'yes', l:'是,跟其他系合辦'},
+    {v:'no', l:'否,只有本系'}
+  ]},
+  {key:'minor', type:'select', text:'Q5 活動是否有未成年人參與?', opts:[
+    {v:'yes', l:'是,有未成年人參與'},
+    {v:'no', l:'否,沒有未成年人'}
+  ]},
+  {key:'bus', type:'select', text:'Q6 是否有租用遊覽車?', opts:[
+    {v:'yes', l:'是,有租用遊覽車'},
+    {v:'no', l:'否,沒有租車'}
+  ]}
+];
+let step = 0;
+let ans = {};
+
+function renderDots(){
+  const d = document.getElementById('dots');
+  d.innerHTML = '';
+  for(let i=0;i<Q.length+1;i++){
+    const s = document.createElement('div');
+    s.className = 'dot' + (i<=step?' on':'');
+    d.appendChild(s);
+  }
+}
+
+function canProceed(q){
+  if(q.type==='number'){
+    const n = Number(ans[q.key]);
+    return ans[q.key] !== undefined && ans[q.key] !== '' && n > 0;
+  }
+  return !!ans[q.key];
+}
+
+function renderQuestion(){
+  const q = Q[step];
+  const app = document.getElementById('app');
+  let html = `<p class="q">${q.text}</p>`;
+
+  if(q.type==='number'){
+    const val = ans[q.key] !== undefined ? ans[q.key] : '';
+    html += `<input class="numinput" type="number" min="1" id="numfield" placeholder="${q.placeholder}" value="${val}">`;
+  } else {
+    q.opts.forEach(o=>{
+      const sel = ans[q.key]===o.v ? ' sel':'';
+      html += `<button class="opt${sel}" data-v="${o.v}">${o.l}</button>`;
+    });
+  }
+
+  html += `<div class="nav">
+    <button class="btn" id="back" ${step===0?'disabled':''}>上一步</button>
+    <button class="btn primary" id="next" ${canProceed(q)?'':'disabled'}>${step===Q.length-1?'看結果':'下一步'}</button>
+  </div>`;
+  app.innerHTML = html;
+
+  if(q.type==='number'){
+    const field = document.getElementById('numfield');
+    field.oninput = ()=>{ ans[q.key]=field.value; document.getElementById('next').disabled = !canProceed(q); };
+  } else {
+    app.querySelectorAll('.opt').forEach(btn=>{
+      btn.onclick = ()=>{ ans[q.key]=btn.dataset.v; render(); };
+    });
+  }
+  document.getElementById('back').onclick = ()=>{ step--; render(); };
+  document.getElementById('next').onclick = ()=>{ step++; render(); };
+}
+
+function renderResult(){
+  const app = document.getElementById('app');
+  const isOut = ans.campus==='out';
+  const isJoint = ans.joint==='yes';
+  const isMinor = ans.minor==='yes';
+  const isOfficer = ans.officer==='yes';
+  const hasBus = ans.bus==='yes';
+  const isMultiday = ans.multiday==='yes';
+
+  const summary = [isOut?'校外活動':'校內活動', isJoint?'跨系合辦':'單系舉辦', isMinor?'有未成年人':'無未成年人', hasBus?'有遊覽車':'無遊覽車'].join(' · ');
+  const deadline = isOut ? '記得所有程序須在活動前14天完成' : '記得所有程序須在活動前7天完成';
+
+  const docs = [];
+  if(isOut) docs.push({t:'活動申請表', tag:'校外必要'});
+  docs.push({t:'計劃書', muted:'每系必交'});
+  docs.push({t:'參與人員名冊', muted:'可平板電子簽名,但需列印後交課活組'});
+  if(isOut) docs.push({t:'保險證明', tag:'旅平險校外必要', muted: isJoint?'可跨系協調':null});
+  if(isMinor) docs.push({t:'未成年家長同意書', muted:'本系自行處理'});
+  if(hasBus) docs.push({t:'租車合約書', muted: isJoint?'可跨系協調':null});
+
+  let docsHtml = docs.map(d=>{
+    const right = [
+      d.tag ? `<span class="tag">${d.tag}</span>` : '',
+      d.muted ? `<span class="tagmuted">${d.muted}</span>` : ''
+    ].filter(Boolean).join(' ');
+    return `<div class="row"><span class="rowtitle">${d.t}</span>${right}</div>`;
+  }).join('');
+
+  const venueNote = !isOut ? `<p style="font-size:13px;color:var(--sub);margin:10px 0 0;">場地借用:校內場地只要線上活動申請通過,就可以直接借用,不需要再另外跑實體申請流程。</p>` : '';
+
+  let meetingItems = [
+    '每個活動都要開預算會與決算會,預算會通過後才能開始採購。',
+    '必須出席人員:總籌、活動各股長、顧問(這屆總務、上屆總務、上屆正副會長)。'
+  ];
+  if(isJoint) meetingItems.push('跨系合辦:預算會、決算會需聯合開一場,因為經費是一起分配的,記得提前告知合辦系「華語系有邀顧問的制度」。');
+  let meeting = `<div class="warnbox"><b>會議提醒</b><ol>${meetingItems.map(m=>`<li>${m}</li>`).join('')}</ol></div>`;
+
+  let chain = [];
+  chain.push(isOfficer ? '總籌本人送出線上申請' : '活動股長代為送出線上申請(總籌非幹部)');
+  chain.push('社團指導老師(系主任)審核通過');
+  chain.push('系學會會長用印(限實體印鑑),並簽名');
+  chain.push('送系辦,系主任簽名');
+  chain.push('送課活組,交科居老師');
+  if(isJoint) chain.push('跨系合辦時,不論本系是否為主辦方,以上流程都要走一次');
+
+  let chainHtml = '<div class="chain">' + chain.map((c,i)=>{
+    const arrow = i < chain.length-1 ? '<div class="chainarrow">&#8595;</div>' : '';
+    return `<div class="chainstep">${c}</div>${arrow}`;
+  }).join('') + '</div>';
+
+  app.innerHTML = `
+    <p style="font-size:13px;color:var(--sub);margin:0 0 4px;">申請結果</p>
+    <p style="font-size:16px;font-weight:600;margin:0 0 14px;">${summary}</p>
+    <div class="alert">${deadline}</div>
+    <div class="card">
+      <p class="label">應繳文件清單</p>
+      ${docsHtml}
+      ${venueNote}
+    </div>
+    ${meeting}
+    ${isMultiday ? `<div class="card"><p class="label">備註</p><p style="font-size:13px;margin:0;">多日連續舉辦的活動(例如啦啦隊練習),可以直接用一個日期區間送出一次活動申請就好,不需要每天各別申請一次。</p></div>` : ''}
+    <div class="card">
+      <p class="label">簽核鏈</p>
+      ${chainHtml}
+    </div>
+    <button class="restart" id="restart">重新開始</button>
+  `;
+  document.getElementById('restart').onclick = ()=>{ step=0; ans={}; render(); };
+}
+
+function render(){
+  renderDots();
+  if(step < Q.length){ renderQuestion(); } else { renderResult(); }
+}
+render();
+</script>
+</body>
+</html>
